@@ -12,9 +12,12 @@ export default function ContentList({ contents }) {
   const { publicKey, sendTransaction } = useWallet();
   const [purchasing, setPurchasing] = useState({});
 
-  const handleShare = () => {
+  const handleShare = (content) => {
+    const domain = "https://claimr.fun"
+    const shareableUrl = `${domain}/link/${content._id}`;
+
     if (window && window.location) {
-      navigator.clipboard.writeText(window.location.href)
+      navigator.clipboard.writeText(shareableUrl)
         .then(() => {
           toast.success('Link copied to clipboard!');
         })
@@ -96,7 +99,7 @@ export default function ContentList({ contents }) {
 
           <div className='absolute top-3 right-3'>
             <button
-                onClick={handleShare}
+                onClick={handleShare(content)}
                 className="text-gray-600 cursor-pointer font-semibold py-2 px-4 flex items-center"
             >
                 <LinkIcon className="h-4 w-4" />
