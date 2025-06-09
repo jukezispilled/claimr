@@ -99,7 +99,7 @@ export default function ContentList({ contents }) {
 
           <div className='absolute top-3 right-3'>
             <button
-                onClick={handleShare(content)}
+                onClick={() => handleShare(content)}
                 className="text-gray-600 cursor-pointer font-semibold py-2 px-4 flex items-center"
             >
                 <LinkIcon className="h-4 w-4" />
