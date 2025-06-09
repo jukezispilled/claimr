@@ -23,7 +23,10 @@ export default function CreatePage() {
           <p className="text-lg text-gray-600">You need to connect to create content</p>
         </div>
       ) : (
-        <CreateContent />
+        <div>
+            <CreateContent />
+            <div className='text-center pt-1 text-xs'>*Note: to reduce launch spam temporary limits are 1 file with a max size of 20mb</div>
+        </div>
       )}
     </motion.div>
   );
