@@ -6,6 +6,28 @@ import { uploadMetadata, createSoulboundNFT, useMetaplex } from '@/lib/metaplex'
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
+const truncateFileName = (name, maxLength) => {
+    const ellipsis = '...';
+    const ellipsisLength = ellipsis.length;
+  
+    if (name.length <= maxLength) {
+      return name;
+    }
+  
+    // Calculate characters for the front and back
+    // Distribute characters roughly evenly, giving a slight preference to the front
+    const charsToShow = maxLength - ellipsisLength;
+    const frontChars = Math.ceil(charsToShow / 2) + 1; // Give a bit more to the front
+    const backChars = charsToShow - frontChars;
+  
+  
+    return (
+      name.substring(0, frontChars) +
+      ellipsis +
+      name.substring(name.length - backChars)
+    );
+};
+
 export default function CreateContent() {
   const { publicKey, wallet, connected } = useWallet();
   const metaplex = useMetaplex();
@@ -202,7 +224,7 @@ export default function CreateContent() {
                     cursor-pointer`}
             >
                 {formData.file ? (
-                    <p className="text-gray-900 pl-2">File selected: <span className="font-semibold">{formData.file.name}</span></p>
+                    <p className="text-gray-900 pl-2">File selected: <span className="font-semibold">{truncateFileName(formData.file.name, 24)}</span></p>
                 ) : (
                     <label htmlFor="file-upload" className="text-gray-600 text-center">
                         {isDragActive ? "Drop the file here..." : "Drag and drop your file here, or click to select"}
@@ -217,7 +239,7 @@ export default function CreateContent() {
                 )}
             </div>
             {formData.file && (
-                <p className="mt-2 text-sm text-gray-600">Selected file: {formData.file.name}</p>
+                <p className="mt-2 text-sm text-gray-600">Selected file: {truncateFileName(formData.file.name, 24)}</p>
             )}
         </div>
 
