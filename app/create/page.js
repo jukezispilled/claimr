@@ -2,22 +2,29 @@
 
 import CreateContent from '@/components/CreateContent';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { motion } from 'framer-motion';
 
 export default function CreatePage() {
   const { connected } = useWallet();
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Create Gated Content</h1>
+    <motion.div 
+      className="container mx-auto px-4 py-16"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.25 }}
+    >
       
       {!connected ? (
-        <div className="text-center p-8 bg-gray-800 rounded-lg max-w-md mx-auto">
-          <h3 className="text-xl font-bold mb-4">Connect Your Wallet</h3>
-          <p className="text-gray-400">You need to connect your wallet to create content.</p>
+        <div className="text-center p-8 rounded-lg max-w-md mx-auto">
+          <p className='text-5xl'>🌐</p>
+          <h3 className="text-3xl font-bold my-2 text-gray-800">Connect Your Wallet</h3>
+          <p className="text-lg text-gray-600">You need to connect to create content</p>
         </div>
       ) : (
         <CreateContent />
       )}
-    </div>
+    </motion.div>
   );
 }

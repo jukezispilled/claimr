@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { getContent } from '@/lib/db';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '@/lib/db';
-import { deleteFile } from '@/lib/storage';
 
 // GET single content details
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    // Await params before destructuring
+    const { id } = await params;
 
     // Validate ID format
     if (!ObjectId.isValid(id)) {
@@ -120,15 +120,6 @@ export async function DELETE(request, { params }) {
     // Verify the requester is the creator
     if (content.creator !== walletAddress) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    // Delete from storage
-    if (content.fileId) {
-      try {
-        await deleteFile(`encrypted/${content.fileId}`);
-      } catch (error) {
-        console.error('Error deleting file from storage:', error);
-      }
     }
 
     // Delete from database
