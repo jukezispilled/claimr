@@ -1,18 +1,20 @@
 'use client';
 
 import { useState, useCallback } from 'react'; // Added useCallback for better memoization
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import bs58 from 'bs58';
 
 export default function NFTGate({ content, contentId, nftMint, children }) {
-  const { publicKey, sendTransaction, signMessage } = useWallet();
+  const { signMessage } = useWallet();
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [accessToken, setAccessToken] = useState(null);
   const [purchasing, setPurchasing] = useState({});
+  const { publicKey, sendTransaction, signTransaction, signAndSendTransaction } = useWallet();
+    const { connection } = useConnection();
 
   const downloadFile = useCallback(async (fileName) => {
     console.log("Attempting to download file with accessToken (if available)...");
@@ -97,12 +99,10 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
       toast.error('Please connect your wallet');
       return;
     }
-
-    setPurchasing({ ...purchasing, [content._id]: true });
-
+  
+    setPurchasing((prev) => ({ ...prev, [content._id]: true }));
+  
     try {
-      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL);
-      
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
@@ -110,11 +110,18 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
           lamports: parseFloat(content.price) * LAMPORTS_PER_SOL,
         })
       );
-
-      const signature = await sendTransaction(transaction, connection);
+  
+      // Prepare transaction with recent blockhash and fee payer
+      const latestBlockhash = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = latestBlockhash.blockhash;
+      transaction.feePayer = publicKey;
+  
+      // Sign and send via Phantom (or compatible wallet)
+      const { signature } = await window.solana.signAndSendTransaction(transaction);
+  
       await connection.confirmTransaction(signature, 'confirmed');
-
-      // After payment confirmed, mint NFT for buyer
+  
+      // After payment, call your backend to mint the NFT
       const res = await fetch('/api/mint-access-nft', {
         method: 'POST',
         headers: {
@@ -126,9 +133,10 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
           txSignature: signature,
         }),
       });
-
+  
       if (res.ok) {
         toast.success('Access NFT minted successfully!');
+        window.location.href = `/link/${content._id}`;
       } else {
         throw new Error('Failed to mint NFT');
       }
@@ -136,9 +144,9 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
       console.error('Error purchasing content:', error);
       toast.error('Failed to purchase content');
     } finally {
-      setPurchasing({ ...purchasing, [content._id]: false });
+      setPurchasing((prev) => ({ ...prev, [content._id]: false }));
     }
-  };
+  };  
 
   const checkAccess = useCallback(async () => {
     console.log("--- checkAccess function called ---");
