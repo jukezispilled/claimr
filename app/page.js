@@ -38,7 +38,7 @@ export default function Home() {
 
   return (
     <motion.div 
-      className="flex justify-center items-center h-[calc(100vh-96px)]"
+      className="flex justify-center items-center h-[calc(100vh-96px)] overflow-clip"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -92,7 +92,7 @@ export default function Home() {
 
       <div className="relative -mt-20">
         <Globe />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-800 text-5xl md:text-8xl">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-800 text-4xl md:text-8xl">
             <div className="w-full flex justify-center">
               <div
                 className={cn(

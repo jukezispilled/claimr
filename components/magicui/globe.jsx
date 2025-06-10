@@ -104,7 +104,7 @@ export function Globe({
   // Replaced `cn` with a simple string template literal since `cn` utility was not provided.
   return (
     <div
-      className={`mx-auto aspect-[1/1] h-[500px] md:h-[800px] max-w-[800px] opacity-80 ${className || ''}`}
+      className={`mx-auto aspect-[1/1] h-[400px] md:h-[800px] max-w-[800px] opacity-80 ${className || ''}`}
     >
       <canvas
         className={`size-full opacity-0 transition-opacity duration-500 [contain:layout_paint_size]`}
