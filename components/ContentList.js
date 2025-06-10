@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 export default function ContentList({ contents }) {
-  const { publicKey, sendTransaction } = useWallet(); // 'sendTransaction' is the method you'll use
+  const { publicKey, sendTransaction } = useWallet();
   const [purchasing, setPurchasing] = useState({});
 
   const handleShare = (content) => {
@@ -35,15 +35,10 @@ export default function ContentList({ contents }) {
     }
 
     setPurchasing({ ...purchasing, [content._id]: true });
-    const toastId = toast.loading('Initiating purchase...'); // Start loading toast
 
     try {
-      // It's good practice to get the connection from useConnection() or use an instance
-      // that's consistently available, but for a one-off here, defining it is okay.
-      // Make sure process.env.NEXT_PUBLIC_SOLANA_RPC_URL is correctly set.
-      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL, 'confirmed'); // Specify commitment
-
-      // 1. Create the transaction
+      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL);
+      
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
@@ -52,26 +47,10 @@ export default function ContentList({ contents }) {
         })
       );
 
-      // Fetch a recent blockhash to ensure the transaction is valid
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      transaction.feePayer = publicKey; // Set the fee payer
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, 'confirmed');
 
-      // 2. Use sendTransaction from useWallet()
-      // This single call handles signing the transaction with the wallet and sending it to the network.
-      // Phantom will be able to inject its Lighthouse guards here.
-      const signature = await sendTransaction(transaction, connection); // Pass the connection object
-
-      // You still need to confirm the transaction if you want to wait for it to be finalized
-      toast.loading('Confirming transaction...', { id: toastId });
-      await connection.confirmTransaction({
-        signature,
-        blockhash: transaction.recentBlockhash,
-        lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
-      }, 'confirmed');
-
-      toast.loading('Minting access NFT...', { id: toastId });
-
-      // After payment confirmed, mint NFT for buyer (this is your backend call)
+      // After payment confirmed, mint NFT for buyer
       const res = await fetch('/api/mint-access-nft', {
         method: 'POST',
         headers: {
@@ -85,19 +64,17 @@ export default function ContentList({ contents }) {
       });
 
       if (res.ok) {
-        toast.success('Content purchased and access granted!', { id: toastId });
+        toast.success('Access NFT minted successfully!');
         // Redirect to content page
         window.location.href = `/link/${content._id}`;
       } else {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to mint NFT');
+        throw new Error('Failed to mint NFT');
       }
     } catch (error) {
       console.error('Error purchasing content:', error);
-      toast.error(error.message || 'Failed to purchase content', { id: toastId });
+      toast.error('Failed to purchase content');
     } finally {
       setPurchasing({ ...purchasing, [content._id]: false });
-      toast.dismiss(toastId); // Ensure toast is dismissed
     }
   };
 
