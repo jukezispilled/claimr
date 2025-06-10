@@ -22,7 +22,7 @@ export default function Navbar() {
           {/* Logo and main nav */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-                <div className='text-2xl md:text-3xl'>🔓</div>
+                <div className='text-2xl -mt-1 md:mt-0 md:text-3xl'>🔓</div>
             </Link>
 
             {/* Desktop menu */}
