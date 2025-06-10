@@ -124,7 +124,7 @@ export default function ContentPage() {
           {({ downloadFile, accessToken }) => (
             <div className="p-6 flex flex-col items-center justify-center text-center">
                 <h3 className="text-xl text-gray-600 font-bold mb-4">Access Granted</h3>
-                <p className="text-gray-600 mb-6">You have access to this content</p>
+                <p className="text-gray-600 mb-6">Content has been downloaded</p>
 
                 <button
                     onClick={() => window.location.reload()}
