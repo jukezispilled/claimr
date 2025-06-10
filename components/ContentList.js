@@ -2,14 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Link as LinkIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-
-const { publicKey, sendTransaction, signTransaction, signAndSendTransaction } = useWallet();
-const { connection } = useConnection();
 
 export default function ContentList({ contents }) {
   const { publicKey, sendTransaction } = useWallet();
