@@ -38,13 +38,13 @@ export default function Home() {
 
   return (
     <motion.div 
-      className="flex justify-center items-center h-[calc(100vh-96px)] overflow-clip"
+      className="flex justify-center items-center h-[calc(100dvh-96px)] overflow-clip"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.25 }}
     >
-      <div className="absolute bottom-4 right-4 py-2 px-4">
+      <div className="absolute bottom-4 right-4 py-2 px-4 z-20">
         <div className="flex justify-center items-center space-x-2">
           <div className="">
             <Link href="https://x.com/claimrdotfun">
