@@ -17,26 +17,17 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
   const downloadFile = useCallback(async (fileName) => {
     console.log("Attempting to download file with accessToken (if available)...");
     if (!accessToken) {
-      // If no accessToken, it implies the initial POST might have already served the file
-      // or the token expired. In this combined backend model, we might need to re-verify
-      // or the download needs to be triggered by a specific event in checkAccess.
       toast.error('No active access token. Please re-verify access or try again.');
       console.warn("Download aborted: No access token available.");
-      // You might want to re-call checkAccess() here if you want to re-initiate the full flow
-      // or if your backend is configured for separate token/download requests.
       return;
     }
 
     try {
-      // This GET request assumes your backend has a GET handler for /api/get-file/[id]
-      // that expects an Authorization header with the Bearer token.
-      // If your backend only has a POST handler for file serving, this GET call
-      // will fail or hit a different route.
       const response = await axios.get(`/api/get-file/${contentId}`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
         },
-        responseType: 'blob', // Expect binary data
+        responseType: 'blob',
       });
       console.log("File download response received via GET request.");
 
@@ -67,10 +58,9 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
         console.error('Axios download error status:', error.response?.status);
         if (error.response?.status === 401 || error.response?.status === 403) {
             toast.error('Access token invalid or expired. Please re-verify access.');
-            setAccessToken(null); // Clear token if invalid
-            setHasAccess(false);  // Revoke access
+            setAccessToken(null);
+            setHasAccess(false);
         } else {
-            // Attempt to read error message from response, if available and not already handled
             const errorContentType = error.response.headers?.['content-type'];
             if (errorContentType?.includes('application/json')) {
               try {
@@ -90,7 +80,7 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
         toast.error('An unexpected error occurred during file download.');
       }
     }
-  }, [accessToken, contentId]); // Dependencies for useCallback
+  }, [accessToken, contentId]);
 
   const handlePurchase = async (content) => {
     if (!publicKey) {
@@ -99,10 +89,13 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
     }
 
     setPurchasing({ ...purchasing, [content._id]: true });
+    const toastId = toast.loading('Initiating purchase...'); // Start loading toast
 
     try {
-      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL);
-      
+      // 1. Establish connection to Solana RPC
+      const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_RPC_URL, 'confirmed');
+
+      // 2. Create the transfer transaction
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
@@ -111,10 +104,29 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
         })
       );
 
-      const signature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(signature, 'confirmed');
+      // 3. Set recent blockhash and fee payer
+      // This is crucial for the wallet's sendTransaction to work properly
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.lastValidBlockHeight = lastValidBlockHeight;
+      transaction.feePayer = publicKey;
 
-      // After payment confirmed, mint NFT for buyer
+      // 4. Use sendTransaction from useWallet()
+      // This single call will prompt the user, sign the transaction, and send it.
+      // Phantom's Lighthouse guards can be injected here.
+      const signature = await sendTransaction(transaction, connection);
+
+      // 5. Confirm the transaction on the network
+      toast.loading('Confirming payment...', { id: toastId });
+      await connection.confirmTransaction({
+        signature,
+        blockhash,
+        lastValidBlockHeight,
+      }, 'confirmed');
+
+      toast.loading('Minting access NFT...', { id: toastId });
+
+      // After payment confirmed, call your backend to mint NFT for buyer
       const res = await fetch('/api/mint-access-nft', {
         method: 'POST',
         headers: {
@@ -128,15 +140,24 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
       });
 
       if (res.ok) {
-        toast.success('Access NFT minted successfully!');
+        toast.success('Content purchased and access granted!', { id: toastId });
+        // Optionally, re-check access after successful purchase
+        checkAccess();
       } else {
-        throw new Error('Failed to mint NFT');
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to mint NFT');
       }
     } catch (error) {
       console.error('Error purchasing content:', error);
-      toast.error('Failed to purchase content');
+      // More specific error messages for user
+      if (error.name === 'WalletAdapterError' && error.message.includes('User rejected the request')) {
+        toast.error('Transaction rejected by user.');
+      } else {
+        toast.error(error.message || 'Failed to purchase content');
+      }
     } finally {
       setPurchasing({ ...purchasing, [content._id]: false });
+      toast.dismiss(toastId); // Ensure toast is dismissed
     }
   };
 
@@ -153,7 +174,6 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
     if (!publicKey || !nftMint || !signMessage) {
       console.warn("Pre-requisites not met: publicKey, nftMint, or signMessage is missing.");
       setLoading(false);
-      // toast.error('Please connect your Solana wallet.'); // Uncomment if you want this toast
       return;
     }
 
@@ -176,7 +196,7 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
         console.error("Error signing message with wallet:", signError);
         toast.error('Wallet signature denied or failed.');
         setLoading(false);
-        return; // Exit if signature fails
+        return;
       }
 
       const signatureBase58 = bs58.encode(signature);
@@ -184,22 +204,20 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
 
       console.log("Making POST request to /api/get-file/ for initial access check.");
 
-      // Crucial: Set responseType to 'blob' as backend is sending a file
       const res = await axios.post(`/api/get-file/${contentId}`, {
         walletAddress: publicKey.toString(),
         signature: signatureBase58,
         message,
       }, {
-        responseType: 'blob' // This is key for handling binary responses
+        responseType: 'blob'
       });
 
       console.log("Server response received for access check.");
 
       const contentType = res.headers['content-type'];
-      const blob = res.data; // response.data is always a Blob due to responseType: 'blob'
+      const blob = res.data;
 
       if (contentType?.includes('application/json')) {
-        // Response is JSON, likely containing an access token or an error message
         const text = await blob.text();
         let data;
         try {
@@ -216,13 +234,12 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
           toast.success('Access granted!');
           console.log("Access Token received. Expires in:", data.expiresIn, "seconds.");
 
-          // Set token expiration timer
           setTimeout(() => {
             setAccessToken(null);
             setHasAccess(false);
             toast.error('Access expired. Please verify again.');
             console.log("Access token expired and cleared.");
-          }, data.expiresIn * 1000); // expiresIn is in seconds, convert to ms
+          }, data.expiresIn * 1000);
         } else if (data.error) {
           console.warn(`[NFTGate] Access denied via JSON error: ${data.error}`);
           toast.error(data.error);
@@ -231,23 +248,12 @@ export default function NFTGate({ content, contentId, nftMint, children }) {
           toast.error('Unexpected response from access verification.');
         }
       } else {
-        // If not JSON, assume it's the binary file data directly, meaning access is granted.
         console.log("Binary file data received directly from POST, assuming access granted.");
-        // We set hasAccess to true because the file is being sent, implying access.
-        // In this scenario, your backend didn't send an accessToken in the body.
-        // If you need an accessToken for subsequent GET downloads, your backend
-        // would need to include it in a custom header or change its POST response to JSON.
         setHasAccess(true);
         toast.success('Access granted and file download initiated!');
 
-        // Automatically trigger download here if the POST directly served the file
-        // This is important because the user clicked "Verify Access" which resulted in the file.
-        // You'll need `content.fileName` here. This means `NFTGate` needs `content` prop or `content.fileName`.
-        // For simplicity, let's just create a download link if we get a blob back immediately.
-        // It's better if the backend sends filename in `Content-Disposition` header.
-
         const contentDisposition = res.headers['content-disposition'];
-        let fileName = `download_${contentId}`; // Default filename
+        let fileName = `download_${contentId}`;
 
         if (contentDisposition) {
           const fileNameMatch = contentDisposition.match(/filename\*?=['"]?(?:UTF-8'')?([^;"]+)/i);
