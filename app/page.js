@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Copy } from 'lucide-react'; // Import the Copy icon from Lucide
 
 export default function Home() {
-  const addr = "XXXXXXXXXXXXXXXXX"; // Example address
+  const addr = "BeiYeHB68EstgFYoz6ziEsgaVhWupz7z4RCdo4G8rBLV"; // Example address
   const [copied, setCopied] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false); // State to control animation
 
