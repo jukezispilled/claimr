@@ -90,6 +90,8 @@ export default function Home() {
         </div>
       </div>
 
+      <a href="https://believe.app/" className="invisible md:visible absolute bottom-4 flex justify-center gap-2">Live on<img src="/b.svg" alt="Live on" className="w-6 h-6" /></a>
+
       <div className="relative -mt-20">
         <Globe />
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-800 text-4xl md:text-8xl">
