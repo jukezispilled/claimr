@@ -124,10 +124,12 @@ export default function ContentList({ contents }) {
               <span className="text-gray-600">Price:</span>
               <span className="text-gray-800 font-bold">{content.price} SOL</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Category:</span>
-              <span className="text-gray-800 font-bold">{content.category}</span>
-            </div>
+            {content.category && content.category.trim() !== '' && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Category:</span>
+                <span className="text-gray-800 font-bold">{content.category}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Creator:</span>
               <span className="font-mono text-xs">{truncateAddress(content.creator)}</span>
