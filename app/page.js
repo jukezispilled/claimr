@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Copy } from 'lucide-react'; // Import the Copy icon from Lucide
 
 export default function Home() {
-  const addr = "GjcBJDgQh9bfZTA1SSpuMv5qag6eC2L3cvda6ddibonk"; // Example address
+  const addr = "XXXXXXXXXXXXXXXXX"; // Example address
   const [copied, setCopied] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false); // State to control animation
 
@@ -47,7 +47,7 @@ export default function Home() {
       <div className="absolute bottom-4 right-4 py-2 px-4 z-20">
         <div className="flex justify-center items-center space-x-2">
           <div className="">
-            <Link href="https://x.com/claimrdotfun">
+            <Link href="https://x.com/tryunlockme">
               <Image src="/x.jpg" width={36} height={36} className="rounded-lg" alt="X logo"/>
             </Link>
           </div>
