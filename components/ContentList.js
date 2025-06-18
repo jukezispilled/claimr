@@ -13,7 +13,7 @@ export default function ContentList({ contents }) {
   const [purchasing, setPurchasing] = useState({});
 
   const handleShare = (content) => {
-    const domain = "https://claimr.fun"
+    const domain = "https://unlockme.lol"
     const shareableUrl = `${domain}/link/${content._id}`;
 
     if (window && window.location) {
@@ -123,6 +123,10 @@ export default function ContentList({ contents }) {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Price:</span>
               <span className="text-gray-800 font-bold">{content.price} SOL</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Category:</span>
+              <span className="text-gray-800 font-bold">{content.category}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Creator:</span>

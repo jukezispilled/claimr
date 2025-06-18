@@ -51,6 +51,7 @@ export async function POST(request) {
       title,
       description,
       price,
+      category,
       creator,
       fileId,        // From the initial file upload
       fileName,      // From the initial file upload
@@ -83,6 +84,7 @@ export async function POST(request) {
       title,
       description,
       price: parseFloat(price), // Ensure price is stored as a number
+      category,
       creator,
       fileId,
       fileName,

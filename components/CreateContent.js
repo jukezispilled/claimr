@@ -38,6 +38,7 @@ export default function CreateContent() {
     title: '',
     description: '',
     price: '',
+    category: '', // Added category to formData
     file: null,
   });
 
@@ -96,6 +97,7 @@ export default function CreateContent() {
         attributes: [
           { trait_type: 'Content Type', value: 'Document' },
           { trait_type: 'Access Type', value: 'Soulbound' },
+          { trait_type: 'Category', value: formData.category }, // Added category to NFT metadata
         ],
         properties: {
           files: [{
@@ -207,6 +209,19 @@ export default function CreateContent() {
                 min="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                required
+            />
+        </div>
+
+        {/* Category Input */}
+        <div>
+            <label htmlFor="category" className="block text-sm font-medium mb-2 text-gray-800">Category</label>
+            <input
+                type="text"
+                id="category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
                 required
             />
