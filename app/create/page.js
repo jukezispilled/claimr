@@ -25,7 +25,7 @@ export default function CreatePage() {
       ) : (
         <div>
             <CreateContent />
-            <div className='text-center pt-1 text-xs'>*Note: to reduce launch spam temporary limits are 1 file with a max size of 20mb</div>
+            <div className='text-center pt-1 text-xs'>*Note: to reduce launch spam temporary limits are 1 file with a max size of 40mb</div>
         </div>
       )}
     </motion.div>

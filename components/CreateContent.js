@@ -62,9 +62,9 @@ export default function CreateContent() {
     }
 
     // Client-side file size validation (redundant with handleFileChange, but good for immediate feedback)
-    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB in bytes
+    const MAX_FILE_SIZE = 40 * 1024 * 1024; // 20 MB in bytes
     if (formData.file.size > MAX_FILE_SIZE) {
-      toast.error('File size exceeds 20MB limit.');
+      toast.error('File size exceeds 40MB limit.');
       return;
     }
 
